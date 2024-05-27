@@ -4,18 +4,17 @@ import { erc721ABI } from "./abis/erc721ABI";
 
 export default createConfig({
   networks: {
-    arbitrum: {
-      chainId: 42161,
-      transport: http(process.env.PONDER_RPC_URL_42161),
+    "arbitrum-sepolia": {
+      chainId: 421614,
+      transport: http(process.env.PONDER_RPC_URL_421614),
     },
   },
   contracts: {
     ERC721: {
-      network: "arbitrum",
+      network: "arbitrum-sepolia",
       abi: erc721ABI,
-      address: "0x6325439389E0797Ab35752B4F43a14C004f22A9c",
-      startBlock: 3163146,
-      endBlock: 3200000,
+      address: "0x1166221d7122ca3dA1BF397d850C81933D0ae13c",
+      startBlock: 48260389,
     },
   },
 });

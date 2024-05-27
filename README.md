@@ -1,10 +1,10 @@
-# Example ERC721 token API
+# Endorser Indexer
 
-This example shows how to create a GraphQL API for an ERC721 token using Ponder. It uses the Smol Brains NFT contract on Arbitrum ([Link](https://arbiscan.io/address/0x6325439389E0797Ab35752B4F43a14C004f22A9c)).
+A backend to track digital endorsements on the blockchain. It indexes endorsements from the [Endorser](https://github.com/PlumaaID/endorser) contract.
 
 ## Sample queries
 
-### Get all tokens currently owned by an account
+### Get all endorsements currently owned by an account
 
 ```graphql
 {
@@ -17,7 +17,7 @@ This example shows how to create a GraphQL API for an ERC721 token using Ponder.
 }
 ```
 
-### Get the current owner and all transfer events for a token
+### Get the current owner and all transfer events for an endorsement
 
 ```graphql
 {
