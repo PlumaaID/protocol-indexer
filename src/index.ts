@@ -1,15 +1,15 @@
 import { ponder } from "@/generated";
 
 ponder.on("ERC721:Transfer", async ({ event, context }) => {
-  const { Account, Token, TransferEvent } = context.db;
+  const { Wallet, Token, TransferEvent } = context.db;
 
-  // Create an Account for the sender, or update the balance if it already exists.
-  await Account.upsert({
+  // Create an Wallet for the sender, or update the balance if it already exists.
+  await Wallet.upsert({
     id: event.args.from,
   });
 
-  // Create an Account for the recipient, or update the balance if it already exists.
-  await Account.upsert({
+  // Create an Wallet for the recipient, or update the balance if it already exists.
+  await Wallet.upsert({
     id: event.args.to,
   });
 
