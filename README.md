@@ -1,6 +1,6 @@
-# Endorser Indexer
+# Protocol Indexer
 
-A backend to track digital endorsements on the blockchain. It indexes endorsements from the [Endorser](https://github.com/PlumaaID/endorser) contract.
+A backend to track digital endorsements on the blockchain. It indexes endorsements from Plumaa ID's protocol [PlumaaID](https://github.com/PlumaaID/protocol).
 
 ## Sample queries
 

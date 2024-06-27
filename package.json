@@ -1,5 +1,5 @@
 {
-  "name": "endorser-indexer",
+  "name": "protocol-indexer",
   "private": true,
   "type": "module",
   "scripts": {
