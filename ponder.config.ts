@@ -13,8 +13,8 @@ export default createConfig({
     ERC721: {
       network: "arbitrum-sepolia",
       abi: erc721ABI,
-      address: "0x1166221d7122ca3dA1BF397d850C81933D0ae13c",
-      startBlock: 48260389,
+      address: "0x0065313718d91863De3cB78A5C188990A67093Aa",
+      startBlock: 59607703,
     },
   },
 });
