@@ -3,27 +3,27 @@ import { createSchema } from "@ponder/core";
 export default createSchema((p) => ({
   Wallet: p.createTable({
     id: p.hex(),
-    tokens: p.many("Token.ownerId"),
+    endorsables: p.many("Endorsable.ownerId"),
 
-    transferFromEvents: p.many("TransferEvent.fromId"),
-    transferToEvents: p.many("TransferEvent.toId"),
+    endorseFromEvents: p.many("EndorseEvent.fromId"),
+    endorseToEvents: p.many("EndorseEvent.toId"),
   }),
-  Token: p.createTable({
+  Endorsable: p.createTable({
     id: p.bigint(),
     ownerId: p.hex().references("Wallet.id"),
 
     owner: p.one("ownerId"),
-    transferEvents: p.many("TransferEvent.tokenId"),
+    endorseEvents: p.many("EndorseEvent.digest"),
   }),
-  TransferEvent: p.createTable({
+  EndorseEvent: p.createTable({
     id: p.string(),
     timestamp: p.int(),
     fromId: p.hex().references("Wallet.id"),
     toId: p.hex().references("Wallet.id"),
-    tokenId: p.bigint().references("Token.id"),
+    digest: p.bigint().references("Endorsable.id"),
 
     from: p.one("fromId"),
     to: p.one("toId"),
-    token: p.one("tokenId"),
+    token: p.one("digest"),
   }),
 }));

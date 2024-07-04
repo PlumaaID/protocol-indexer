@@ -10,7 +10,7 @@ export default createConfig({
     },
   },
   contracts: {
-    ERC721: {
+    Endorser: {
       network: "arbitrum-sepolia",
       abi: erc721ABI,
       address: "0x0065313718d91863De3cB78A5C188990A67093Aa",

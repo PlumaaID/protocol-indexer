@@ -1,7 +1,7 @@
 import { ponder } from "@/generated";
 
-ponder.on("ERC721:Transfer", async ({ event, context }) => {
-  const { Wallet, Token, TransferEvent } = context.db;
+ponder.on("Endorser:Transfer", async ({ event, context }) => {
+  const { Wallet, Endorsable, EndorseEvent } = context.db;
 
   // Create an Wallet for the sender, or update the balance if it already exists.
   await Wallet.upsert({
@@ -13,8 +13,8 @@ ponder.on("ERC721:Transfer", async ({ event, context }) => {
     id: event.args.to,
   });
 
-  // Create or update a Token.
-  await Token.upsert({
+  // Create or update a Endorsable.
+  await Endorsable.upsert({
     id: event.args.id,
     create: {
       ownerId: event.args.to,
@@ -24,13 +24,13 @@ ponder.on("ERC721:Transfer", async ({ event, context }) => {
     },
   });
 
-  // Create a TransferEvent.
-  await TransferEvent.create({
+  // Create a EndorseEvent.
+  await EndorseEvent.create({
     id: event.log.id,
     data: {
       fromId: event.args.from,
       toId: event.args.to,
-      tokenId: event.args.id,
+      digest: event.args.id,
       timestamp: Number(event.block.timestamp),
     },
   });
