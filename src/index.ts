@@ -13,11 +13,14 @@ ponder.on("Endorser:Transfer", async ({ event, context }) => {
     id: event.args.to,
   });
 
+  const timestamp = Number(event.block.timestamp);
+
   // Create or update a Endorsable.
   await Endorsable.upsert({
     id: event.args.id,
     create: {
       ownerId: event.args.to,
+      timestamp,
     },
     update: {
       ownerId: event.args.to,
@@ -31,7 +34,7 @@ ponder.on("Endorser:Transfer", async ({ event, context }) => {
       fromId: event.args.from,
       toId: event.args.to,
       digest: event.args.id,
-      timestamp: Number(event.block.timestamp),
+      timestamp,
     },
   });
 });

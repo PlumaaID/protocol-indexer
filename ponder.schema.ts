@@ -11,6 +11,7 @@ export default createSchema((p) => ({
   Endorsable: p.createTable({
     id: p.bigint(),
     ownerId: p.hex().references("Wallet.id"),
+    timestamp: p.int(),
 
     owner: p.one("ownerId"),
     endorseEvents: p.many("EndorseEvent.digest"),
