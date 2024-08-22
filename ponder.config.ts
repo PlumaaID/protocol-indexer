@@ -13,7 +13,7 @@ export default createConfig({
     Endorser: {
       network: "arbitrum-sepolia",
       abi: erc721ABI,
-      address: "0x0065313718d91863De3cB78A5C188990A67093Aa",
+      address: "0x007D52Aaf565f34a1267eF54CB9B1C10B5Da9aAa",
       startBlock: 59607703,
     },
   },
