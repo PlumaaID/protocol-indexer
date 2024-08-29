@@ -1,9 +1,9 @@
 import { ponder } from "@/generated";
 
 ponder.on("MXNUSDFeed:AnswerUpdated", async ({ event, context }) => {
-  const { MXNUSDMedian } = context.db;
+  const { MedianMXNUSDRate } = context.db;
 
-  await MXNUSDMedian.create({
+  await MedianMXNUSDRate.create({
     id: event.args.roundId,
     data: {
       rate: Number(event.args.current) / 1e8, // 8 decimals
@@ -15,13 +15,13 @@ ponder.on("MXNUSDFeed:AnswerUpdated", async ({ event, context }) => {
 });
 
 ponder.on("USDCUSDFeed:AnswerUpdated", async ({ event, context }) => {
-  const { USDCUSDMedian, MXNUSDMedian, USDCMXNMedian } = context.db;
+  const { MedianUSDCUSDRate, MedianMXNUSDRate, MedianUSDCMXNRate } = context.db;
 
   const decimals = 8;
   const usdusdc = Number(event.args.current) / 10 ** decimals;
   const usdcusd = 10 ** decimals / Number(event.args.current);
 
-  await USDCUSDMedian.create({
+  await MedianUSDCUSDRate.create({
     id: event.args.roundId,
     data: {
       rate: usdcusd,
@@ -31,7 +31,7 @@ ponder.on("USDCUSDFeed:AnswerUpdated", async ({ event, context }) => {
     },
   });
 
-  const medians = await MXNUSDMedian.findMany({
+  const medians = await MedianMXNUSDRate.findMany({
     limit: 1,
     where: {
       timestamp: { lte: Number(event.block.timestamp) }, // Get the latest price for the corresponding timestamp
@@ -43,7 +43,7 @@ ponder.on("USDCUSDFeed:AnswerUpdated", async ({ event, context }) => {
 
   const usdmxn = medians.items[0].inverseRate;
 
-  await USDCMXNMedian.create({
+  await MedianUSDCMXNRate.create({
     id: event.args.roundId,
     data: {
       rate: usdmxn / usdcusd,

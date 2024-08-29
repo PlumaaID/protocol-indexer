@@ -31,21 +31,21 @@ export default createSchema((p) => ({
     token: p.one("digest"),
   }),
   // Price feeds
-  MXNUSDMedian: p.createTable({
+  MedianMXNUSDRate: p.createTable({
     id: p.bigint(),
     rate: p.float(),
     inverseRate: p.float(),
     timestamp: p.int(),
     network: p.int(),
   }),
-  USDCUSDMedian: p.createTable({
+  MedianUSDCUSDRate: p.createTable({
     id: p.bigint(),
     rate: p.float(),
     inverseRate: p.float(),
     timestamp: p.int(),
     network: p.int(),
   }),
-  USDCMXNMedian: p.createTable({
+  MedianUSDCMXNRate: p.createTable({
     id: p.bigint(),
     rate: p.float(),
     inverseRate: p.float(),
