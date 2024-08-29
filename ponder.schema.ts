@@ -8,10 +8,12 @@ export default createSchema((p) => ({
     endorseFromEvents: p.many("EndorseEvent.fromId"),
     endorseToEvents: p.many("EndorseEvent.toId"),
   }),
+  // Plumaa ID protocol
   Endorsable: p.createTable({
     id: p.bigint(),
     ownerId: p.hex().references("Wallet.id"),
     timestamp: p.int(),
+    network: p.int(),
 
     owner: p.one("ownerId"),
     endorseEvents: p.many("EndorseEvent.digest"),
@@ -22,9 +24,32 @@ export default createSchema((p) => ({
     fromId: p.hex().references("Wallet.id"),
     toId: p.hex().references("Wallet.id"),
     digest: p.bigint().references("Endorsable.id"),
+    network: p.int(),
 
     from: p.one("fromId"),
     to: p.one("toId"),
     token: p.one("digest"),
+  }),
+  // Price feeds
+  MXNUSDMedian: p.createTable({
+    id: p.bigint(),
+    rate: p.float(),
+    inverseRate: p.float(),
+    timestamp: p.int(),
+    network: p.int(),
+  }),
+  USDCUSDMedian: p.createTable({
+    id: p.bigint(),
+    rate: p.float(),
+    inverseRate: p.float(),
+    timestamp: p.int(),
+    network: p.int(),
+  }),
+  USDCMXNMedian: p.createTable({
+    id: p.bigint(),
+    rate: p.float(),
+    inverseRate: p.float(),
+    timestamp: p.int(),
+    network: p.int(),
   }),
 }));
