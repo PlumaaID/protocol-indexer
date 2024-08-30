@@ -1,5 +1,32 @@
 import { createSchema } from "@ponder/core";
 
+const createMedianRate = (p: any) =>
+  p.createTable({
+    id: p.bigint(),
+    rate: p.float(),
+    inverseRate: p.float(),
+    timestamp: p.int(),
+    network: p.int(),
+  });
+
+const createBucket = (p: any) =>
+  p.createTable({
+    id: p.int(),
+    // Regular
+    open: p.float(),
+    close: p.float(),
+    low: p.float(),
+    high: p.float(),
+    average: p.float(),
+    // Inverse
+    inverseOpen: p.float(),
+    inverseClose: p.float(),
+    inverseLow: p.float(),
+    inverseHigh: p.float(),
+    inverseAverage: p.float(),
+    count: p.int(),
+  });
+
 export default createSchema((p) => ({
   Wallet: p.createTable({
     id: p.hex(),
@@ -8,6 +35,7 @@ export default createSchema((p) => ({
     endorseFromEvents: p.many("EndorseEvent.fromId"),
     endorseToEvents: p.many("EndorseEvent.toId"),
   }),
+
   // Plumaa ID protocol
   Endorsable: p.createTable({
     id: p.bigint(),
@@ -30,26 +58,20 @@ export default createSchema((p) => ({
     to: p.one("toId"),
     token: p.one("digest"),
   }),
+
   // Price feeds
-  MedianMXNUSDRate: p.createTable({
-    id: p.bigint(),
-    rate: p.float(),
-    inverseRate: p.float(),
-    timestamp: p.int(),
-    network: p.int(),
-  }),
-  MedianUSDCUSDRate: p.createTable({
-    id: p.bigint(),
-    rate: p.float(),
-    inverseRate: p.float(),
-    timestamp: p.int(),
-    network: p.int(),
-  }),
-  MedianUSDCMXNRate: p.createTable({
-    id: p.bigint(),
-    rate: p.float(),
-    inverseRate: p.float(),
-    timestamp: p.int(),
-    network: p.int(),
-  }),
+  MedianMXNUSDRate: createMedianRate(p),
+  DailyBucketMXNUSDRate: createBucket(p),
+  WeeklyBucketMXNUSDRate: createBucket(p),
+  MonthlyBucketMXNUSDRate: createBucket(p),
+
+  MedianUSDCUSDRate: createMedianRate(p),
+  DailyBucketUSDCUSDRate: createBucket(p),
+  WeeklyBucketUSDCUSDRate: createBucket(p),
+  MonthlyBucketUSDCUSDRate: createBucket(p),
+
+  MedianUSDCMXNRate: createMedianRate(p),
+  DailyBucketUSDCMXNRate: createBucket(p),
+  WeeklyBucketUSDCMXNRate: createBucket(p),
+  MonthlyBucketUSDCMXNRate: createBucket(p),
 }));
