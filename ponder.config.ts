@@ -21,7 +21,7 @@ export default createConfig({
   contracts: {
     Endorser: {
       abi: erc721ABI,
-      address: "0x007D52Aaf565f34a1267eF54CB9B1C10B5Da9aAa",
+      address: "0x0000c908D1104caD2867Ec2A8Bb178D78C9bAaaa",
       filter: {
         event: "Transfer",
       },
