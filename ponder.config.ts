@@ -1,4 +1,4 @@
-import { createConfig } from "@ponder/core";
+import { createConfig, loadBalance, rateLimit } from "@ponder/core";
 import { http } from "viem";
 import { erc721ABI } from "./abis/erc721ABI";
 import { AccessControlledOffchainAggregator } from "./abis/chainlink/AccessControlledOffchainAggregator";
@@ -7,15 +7,45 @@ export default createConfig({
   networks: {
     arbitrum: {
       chainId: 42161,
-      transport: http(process.env.PONDER_RPC_URL_42161),
+      transport: loadBalance([
+        http(
+          `https://arbitrum-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+        ),
+        http(
+          `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
+        ),
+        rateLimit(http("https://rpc.ankr.com/arbitrum"), {
+          requestsPerSecond: 5,
+        }),
+      ]),
     },
     "arbitrum-sepolia": {
       chainId: 421614,
-      transport: http(process.env.PONDER_RPC_URL_421614),
+      transport: loadBalance([
+        http(
+          `https://arbitrum-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+        ),
+        http(
+          `https://arbitrum-sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
+        ),
+        rateLimit(http("https://rpc.ankr.com/arbitrum"), {
+          requestsPerSecond: 5,
+        }),
+      ]),
     },
     polygon: {
-      chainId: 56,
-      transport: http(process.env.PONDER_RPC_URL_137),
+      chainId: 137,
+      transport: loadBalance([
+        http(
+          `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+        ),
+        http(
+          `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
+        ),
+        rateLimit(http("https://rpc.ankr.com/polygon"), {
+          requestsPerSecond: 5,
+        }),
+      ]),
     },
   },
   contracts: {
