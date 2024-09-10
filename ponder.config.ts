@@ -28,7 +28,7 @@ export default createConfig({
         http(
           `https://arbitrum-sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
         ),
-        rateLimit(http("https://rpc.ankr.com/arbitrum"), {
+        rateLimit(http("https://sepolia-rollup.arbitrum.io/rpc"), {
           requestsPerSecond: 5,
         }),
       ]),
