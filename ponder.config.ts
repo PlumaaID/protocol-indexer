@@ -71,6 +71,7 @@ export default createConfig({
         event: "AnswerUpdated",
       },
       address: "0x2946220288DbBF77dF0030fCecc2a8348CbBE32C",
+      startBlock: 101203,
     },
   },
 });
