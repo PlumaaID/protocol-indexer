@@ -11,9 +11,6 @@ export default createConfig({
         http(
           `https://arbitrum-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
         ),
-        http(
-          `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
-        ),
         rateLimit(http("https://rpc.ankr.com/arbitrum"), {
           requestsPerSecond: 5,
         }),
@@ -25,9 +22,6 @@ export default createConfig({
         http(
           `https://arbitrum-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
         ),
-        http(
-          `https://arbitrum-sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
-        ),
         rateLimit(http("https://sepolia-rollup.arbitrum.io/rpc"), {
           requestsPerSecond: 5,
         }),
@@ -38,9 +32,6 @@ export default createConfig({
       transport: loadBalance([
         http(
           `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
-        ),
-        http(
-          `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
         ),
         rateLimit(http("https://rpc.ankr.com/polygon"), {
           requestsPerSecond: 5,
