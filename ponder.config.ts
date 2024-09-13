@@ -9,7 +9,7 @@ export default createConfig({
       chainId: 42161,
       transport: loadBalance([
         http(
-          `https://arbitrum-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+          `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
         ),
       ]),
     },
@@ -17,7 +17,7 @@ export default createConfig({
       chainId: 421614,
       transport: loadBalance([
         http(
-          `https://arbitrum-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+          `https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
         ),
       ]),
     },
