@@ -1,32 +1,51 @@
-import { ponder } from "@/generated";
+import { ponder } from "ponder:registry";
 import { saveDailyBucket, saveMonthlyBucket, saveWeeklyBucket } from "./utils";
+import {
+  dailyBucketMXNUSDRates,
+  dailyBucketUSDCMXNRates,
+  dailyBucketUSDCUSDRates,
+  medianMXNUSDRates,
+  medianUSDCMXNRates,
+  medianUSDCUSDRates,
+  monthlyBucketMXNUSDRates,
+  monthlyBucketUSDCMXNRates,
+  monthlyBucketUSDCUSDRates,
+  weeklyBucketMXNUSDRates,
+  weeklyBucketUSDCMXNRates,
+  weeklyBucketUSDCUSDRates,
+} from "ponder:schema";
+import { desc, eq, lte } from "ponder";
 
 ponder.on("MXNUSDFeed:AnswerUpdated", async ({ event, context }) => {
-  const {
-    MedianMXNUSDRate,
-    DailyBucketMXNUSDRate,
-    WeeklyBucketMXNUSDRate,
-    MonthlyBucketMXNUSDRate,
-  } = context.db;
-
   const timestamp = Number(event.block.timestamp);
   const decimals = 8;
   const rate = Number(event.args.current) / 10 ** decimals;
   const inverseRate = 10 ** decimals / Number(event.args.current);
 
-  await MedianMXNUSDRate.create({
+  await context.db.insert(medianMXNUSDRates).values({
     id: event.args.roundId,
-    data: {
-      rate,
-      inverseRate,
-      timestamp,
-      network: context.network.chainId,
-    },
+    rate,
+    inverseRate,
+    timestamp,
+    network: context.network.chainId,
   });
-  await saveDailyBucket(DailyBucketMXNUSDRate, rate, inverseRate, timestamp);
-  await saveWeeklyBucket(WeeklyBucketMXNUSDRate, rate, inverseRate, timestamp);
+  await saveDailyBucket(
+    context,
+    dailyBucketMXNUSDRates,
+    rate,
+    inverseRate,
+    timestamp
+  );
+  await saveWeeklyBucket(
+    context,
+    weeklyBucketMXNUSDRates,
+    rate,
+    inverseRate,
+    timestamp
+  );
   await saveMonthlyBucket(
-    MonthlyBucketMXNUSDRate,
+    context,
+    monthlyBucketMXNUSDRates,
     rate,
     inverseRate,
     timestamp
@@ -34,71 +53,80 @@ ponder.on("MXNUSDFeed:AnswerUpdated", async ({ event, context }) => {
 });
 
 ponder.on("USDCUSDFeed:AnswerUpdated", async ({ event, context }) => {
-  const {
-    MedianUSDCUSDRate,
-    DailyBucketUSDCUSDRate,
-    WeeklyBucketUSDCUSDRate,
-    MonthlyBucketUSDCUSDRate,
-    MedianMXNUSDRate,
-    MedianUSDCMXNRate,
-    DailyBucketUSDCMXNRate,
-    WeeklyBucketUSDCMXNRate,
-    MonthlyBucketUSDCMXNRate,
-  } = context.db;
-
   const decimals = 8;
   const usdusdc = Number(event.args.current) / 10 ** decimals;
   const usdcusd = 10 ** decimals / Number(event.args.current);
   const timestamp = Number(event.block.timestamp);
 
-  await MedianUSDCUSDRate.create({
+  await context.db.insert(medianUSDCUSDRates).values({
     id: event.args.roundId,
-    data: {
-      rate: usdcusd,
-      inverseRate: usdusdc,
-      timestamp,
-      network: context.network.chainId,
-    },
+    rate: usdcusd,
+    inverseRate: usdusdc,
+    timestamp,
+    network: context.network.chainId,
   });
 
-  await saveDailyBucket(DailyBucketUSDCUSDRate, usdcusd, usdusdc, timestamp);
-  await saveWeeklyBucket(WeeklyBucketUSDCUSDRate, usdcusd, usdusdc, timestamp);
+  await saveDailyBucket(
+    context,
+    dailyBucketUSDCUSDRates,
+    usdcusd,
+    usdusdc,
+    timestamp
+  );
+  await saveWeeklyBucket(
+    context,
+    weeklyBucketUSDCUSDRates,
+    usdcusd,
+    usdusdc,
+    timestamp
+  );
   await saveMonthlyBucket(
-    MonthlyBucketUSDCUSDRate,
+    context,
+    monthlyBucketUSDCUSDRates,
     usdcusd,
     usdusdc,
     timestamp
   );
 
-  const medians = await MedianMXNUSDRate.findMany({
-    limit: 1,
-    where: {
-      timestamp: { lte: timestamp }, // Get the latest price for the corresponding timestamp
-    },
-    orderBy: { timestamp: "desc" },
-  });
+  const medians = await context.db.sql
+    .select()
+    .from(medianMXNUSDRates)
+    // Get the latest price for the corresponding timestamp
+    .where(lte(medianMXNUSDRates.timestamp, timestamp))
+    .orderBy(desc(medianMXNUSDRates.timestamp))
+    .limit(1);
+  if (!medians?.[0]) return; // No MXNUSD price
 
-  if (!medians.items?.[0]) return; // No MXNUSD price
-
-  const usdmxn = medians.items[0].inverseRate;
+  const usdmxn = medians[0].inverseRate;
 
   const usdcmxn = usdmxn / usdcusd;
   const mxncusdc = usdcusd / usdmxn;
 
-  await MedianUSDCMXNRate.create({
+  await context.db.insert(medianUSDCMXNRates).values({
     id: event.args.roundId,
-    data: {
-      rate: usdcmxn,
-      inverseRate: mxncusdc,
-      timestamp,
-      network: context.network.chainId,
-    },
+    rate: usdcmxn,
+    inverseRate: mxncusdc,
+    timestamp,
+    network: context.network.chainId,
   });
 
-  await saveDailyBucket(DailyBucketUSDCMXNRate, usdcmxn, mxncusdc, timestamp);
-  await saveWeeklyBucket(WeeklyBucketUSDCMXNRate, usdcmxn, mxncusdc, timestamp);
+  await saveDailyBucket(
+    context,
+    dailyBucketUSDCMXNRates,
+    usdcmxn,
+    mxncusdc,
+    timestamp
+  );
+  await saveWeeklyBucket(
+    context,
+    weeklyBucketUSDCMXNRates,
+    usdcmxn,
+    mxncusdc,
+    timestamp
+  );
   await saveMonthlyBucket(
-    MonthlyBucketUSDCMXNRate,
+    context,
+    monthlyBucketUSDCMXNRates,
     usdcmxn,
     mxncusdc,
     timestamp

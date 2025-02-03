@@ -1,5 +1,3 @@
-import { ponder } from "@/generated";
-
 const secondsInDay = 60 * 60 * 24;
 const toHourId = (timestamp: number) =>
   Math.floor(timestamp / secondsInDay) * secondsInDay;
@@ -13,14 +11,16 @@ const toMonthId = (timestamp: number) =>
   Math.floor(timestamp / secondsInMonth) * secondsInMonth;
 
 const saveBucket = async (
+  context: any,
   id: number,
   bucket: any,
   rate: number,
   inverseRate: number
 ) => {
-  await bucket.upsert({
-    id,
-    create: {
+  await context.db
+    .insert(bucket)
+    .values({
+      id,
       open: rate,
       close: rate,
       low: rate,
@@ -32,44 +32,48 @@ const saveBucket = async (
       inverseHigh: inverseRate,
       inverseAverage: inverseRate,
       count: 1,
-    },
-    update: ({ current }: { current: any }) => ({
+    })
+    .onConflictDoUpdate((row: any) => ({
       close: rate,
-      low: current.low > rate ? rate : current.low,
-      high: current.high < rate ? rate : current.high,
-      average: (current.average * current.count + rate) / (current.count + 1),
+      low: row.low > rate ? rate : row.low,
+      high: row.high < rate ? rate : row.high,
+      average: (row.average * row.count + rate) / (row.count + 1),
       inverseClose: inverseRate,
-      inverseLow:
-        current.inverseLow > inverseRate ? inverseRate : current.inverseLow,
+      inverseLow: row.inverseLow > inverseRate ? inverseRate : row.inverseLow,
       inverseHigh:
-        current.inverseHigh < inverseRate ? inverseRate : current.inverseHigh,
+        row.inverseHigh < inverseRate ? inverseRate : row.inverseHigh,
       inverseAverage:
-        (current.inverseAverage * current.count + inverseRate) /
-        (current.count + 1),
-      count: current.count + 1,
-    }),
-  });
+        (row.inverseAverage * row.count + inverseRate) / (row.count + 1),
+      count: row.count,
+    }));
 };
 
 const saveDailyBucket = async (
+  context: any,
   bucket: any,
   rate: number,
   inverseRate: number,
   timestamp: number
-) => saveBucket(toHourId(Number(timestamp)), bucket, rate, inverseRate);
+) =>
+  saveBucket(context, toHourId(Number(timestamp)), bucket, rate, inverseRate);
 
 const saveWeeklyBucket = async (
+  context: any,
+
   bucket: any,
   rate: number,
   inverseRate: number,
   timestamp: number
-) => saveBucket(toWeekId(Number(timestamp)), bucket, rate, inverseRate);
+) =>
+  saveBucket(context, toWeekId(Number(timestamp)), bucket, rate, inverseRate);
 
 const saveMonthlyBucket = async (
+  context: any,
   bucket: any,
   rate: number,
   inverseRate: number,
   timestamp: number
-) => saveBucket(toMonthId(Number(timestamp)), bucket, rate, inverseRate);
+) =>
+  saveBucket(context, toMonthId(Number(timestamp)), bucket, rate, inverseRate);
 
 export { saveDailyBucket, saveWeeklyBucket, saveMonthlyBucket };

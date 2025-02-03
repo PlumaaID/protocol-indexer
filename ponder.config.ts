@@ -1,7 +1,9 @@
-import { createConfig, loadBalance, rateLimit } from "@ponder/core";
-import { http } from "viem";
+import { createConfig, loadBalance, factory } from "ponder";
+import { getAbiItem, http } from "viem";
 import { erc721ABI } from "./abis/erc721ABI";
 import { AccessControlledOffchainAggregator } from "./abis/chainlink/AccessControlledOffchainAggregator";
+import { TinteroLoanABI } from "./abis/tintero/loan";
+import { TinteroVaultABI } from "./abis/tintero/vault";
 
 export default createConfig({
   networks: {
@@ -31,11 +33,30 @@ export default createConfig({
     },
   },
   contracts: {
+    TinteroVaultUSDC: {
+      abi: TinteroVaultABI,
+      network: {
+        "arbitrum-sepolia": {
+          startBlock: 120219065,
+          address: "0xf6259e8b386f39021fbb4c97cffaff7181911f3f",
+        },
+      },
+    },
+    TinteroLoanUSDC: {
+      abi: TinteroLoanABI,
+      network: {
+        "arbitrum-sepolia": {
+          startBlock: 120219065,
+          address: factory({
+            address: "0xf6259e8b386f39021fbb4c97cffaff7181911f3f",
+            event: getAbiItem({ abi: TinteroVaultABI, name: "LoanCreated" }),
+            parameter: "loan",
+          }),
+        },
+      },
+    },
     Endorser: {
       abi: erc721ABI,
-      filter: {
-        event: "Transfer",
-      },
       network: {
         "arbitrum-sepolia": {
           startBlock: 72138379,
@@ -51,17 +72,12 @@ export default createConfig({
       abi: AccessControlledOffchainAggregator,
       network: "polygon",
       address: "0x3D9b02dba75AfDa94F973F537A7f058f5788eDE6",
-      filter: {
-        event: "AnswerUpdated",
-      },
       startBlock: 20144664,
     },
     USDCUSDFeed: {
       abi: AccessControlledOffchainAggregator,
       network: "arbitrum",
-      filter: {
-        event: "AnswerUpdated",
-      },
+
       address: "0x2946220288DbBF77dF0030fCecc2a8348CbBE32C",
       startBlock: 101203,
     },

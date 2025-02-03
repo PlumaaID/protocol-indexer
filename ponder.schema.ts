@@ -1,77 +1,227 @@
-import { createSchema } from "@ponder/core";
+import { onchainTable, primaryKey, relations } from "ponder";
 
-const createMedianRate = (p: any) =>
-  p.createTable({
-    id: p.bigint(),
-    rate: p.float(),
-    inverseRate: p.float(),
-    timestamp: p.int(),
-    network: p.int(),
-  });
+const createMedianRate = (t: any) => ({
+  id: t.bigint().primaryKey().notNull(),
+  rate: t.real().notNull(),
+  inverseRate: t.real().notNull(),
+  timestamp: t.integer().notNull(),
+  network: t.integer().notNull(),
+});
 
-const createBucket = (p: any) =>
-  p.createTable({
-    id: p.int(),
-    // Regular
-    open: p.float(),
-    close: p.float(),
-    low: p.float(),
-    high: p.float(),
-    average: p.float(),
-    // Inverse
-    inverseOpen: p.float(),
-    inverseClose: p.float(),
-    inverseLow: p.float(),
-    inverseHigh: p.float(),
-    inverseAverage: p.float(),
-    count: p.int(),
-  });
+const createBucket = (t: any) => ({
+  id: t.integer().primaryKey().notNull(),
+  // Regular
+  open: t.real().notNull(),
+  close: t.real().notNull(),
+  low: t.real().notNull(),
+  high: t.real().notNull(),
+  average: t.real().notNull(),
+  /// Inverse
+  inverseOpen: t.real().notNull(),
+  inverseClose: t.real().notNull(),
+  inverseLow: t.real().notNull(),
+  inverseHigh: t.real().notNull(),
+  inverseAverage: t.real().notNull(),
+  count: t.integer().notNull(),
+});
 
-export default createSchema((p) => ({
-  Wallet: p.createTable({
-    id: p.hex(),
-    endorsables: p.many("Endorsable.ownerId"),
-
-    endorseFromEvents: p.many("EndorseEvent.fromId"),
-    endorseToEvents: p.many("EndorseEvent.toId"),
-  }),
-
-  // Plumaa ID protocol
-  Endorsable: p.createTable({
-    id: p.bigint(),
-    ownerId: p.hex().references("Wallet.id"),
-    timestamp: p.int(),
-    network: p.int(),
-
-    owner: p.one("ownerId"),
-    endorseEvents: p.many("EndorseEvent.digest"),
-  }),
-  EndorseEvent: p.createTable({
-    id: p.string(),
-    timestamp: p.int(),
-    fromId: p.hex().references("Wallet.id"),
-    toId: p.hex().references("Wallet.id"),
-    digest: p.bigint().references("Endorsable.id"),
-    network: p.int(),
-
-    from: p.one("fromId"),
-    to: p.one("toId"),
-    token: p.one("digest"),
-  }),
-
-  // Price feeds
-  MedianMXNUSDRate: createMedianRate(p),
-  DailyBucketMXNUSDRate: createBucket(p),
-  WeeklyBucketMXNUSDRate: createBucket(p),
-  MonthlyBucketMXNUSDRate: createBucket(p),
-
-  MedianUSDCUSDRate: createMedianRate(p),
-  DailyBucketUSDCUSDRate: createBucket(p),
-  WeeklyBucketUSDCUSDRate: createBucket(p),
-  MonthlyBucketUSDCUSDRate: createBucket(p),
-
-  MedianUSDCMXNRate: createMedianRate(p),
-  DailyBucketUSDCMXNRate: createBucket(p),
-  WeeklyBucketUSDCMXNRate: createBucket(p),
-  MonthlyBucketUSDCMXNRate: createBucket(p),
+export const endorsables = onchainTable("endorsable", (t) => ({
+  id: t.bigint().primaryKey().notNull(),
+  ownerId: t.hex().notNull(),
+  timestamp: t.integer().notNull(),
+  network: t.integer().notNull(),
 }));
+
+export const endorsableRelationships = relations(
+  endorsables,
+  ({ one, many }) => ({
+    owner: one(wallets, {
+      fields: [endorsables.ownerId],
+      references: [wallets.id],
+    }),
+    endorseEvents: many(endorseEvents),
+  })
+);
+
+export const endorseEvents = onchainTable("endorse_event", (t) => ({
+  id: t.text().primaryKey().notNull(),
+  timestamp: t.integer().notNull(),
+  fromId: t.hex().notNull(),
+  toId: t.hex().notNull(),
+  digest: t.bigint().notNull(),
+  network: t.integer().notNull(),
+}));
+
+export const endorseEventRelationships = relations(
+  endorseEvents,
+  ({ one }) => ({
+    from: one(wallets, {
+      fields: [endorseEvents.fromId],
+      references: [wallets.id],
+    }),
+    to: one(wallets, {
+      fields: [endorseEvents.toId],
+      references: [wallets.id],
+    }),
+    token: one(endorsables, {
+      fields: [endorseEvents.digest],
+      references: [endorsables.id],
+    }),
+  })
+);
+
+export const wallets = onchainTable("wallet", (t) => ({
+  id: t.hex().primaryKey(),
+}));
+
+export const walletRelationships = relations(wallets, ({ many }) => ({
+  endorsables: many(endorsables),
+  endorseFromEvents: many(endorseEvents),
+  endorseToEvents: many(endorseEvents),
+}));
+
+export const tinteroVaults = onchainTable("tintero_vault", (t) => ({
+  id: t.hex().primaryKey().notNull(),
+  asset: t.hex().notNull(),
+}));
+
+export const tinteroVaultRelationships = relations(
+  tinteroVaults,
+  ({ many }) => ({
+    loans: many(tinteroLoans),
+  })
+);
+
+export const tinteroLoans = onchainTable("tintero_loan", (t) => ({
+  id: t.hex().primaryKey().notNull(),
+  collateralAsset: t.hex().notNull(),
+  beneficiary: t.hex().notNull(),
+  defaultThreshold: t.integer().notNull(),
+  vault: t.hex().notNull(),
+}));
+
+export const tinteroLoanRelationships = relations(
+  tinteroLoans,
+  ({ one, many }) => ({
+    vault: one(tinteroVaults, {
+      fields: [tinteroLoans.vault],
+      references: [tinteroVaults.id],
+    }),
+    payments: many(tinteroPayments),
+  })
+);
+
+export const tinteroPayments = onchainTable(
+  "tintero_payment",
+  (t) => ({
+    loan: t.hex().notNull(),
+    index: t.bigint().notNull(),
+    collateralId: t.bigint().notNull(),
+    principal: t.bigint().notNull(),
+    fundedAt: t.bigint().notNull(),
+    maturityPeriod: t.bigint().notNull(),
+    gracePeriod: t.bigint().notNull(),
+    interestRate: t.bigint().notNull(),
+    premiumRate: t.bigint().notNull(),
+    trancheIndex: t.bigint(),
+    funded: t.boolean().notNull(),
+    paid: t.boolean().notNull(),
+    withdrawn: t.boolean().notNull(),
+    repossessed: t.boolean().notNull(),
+    interestPaid: t.bigint().notNull(),
+    premiumInterestPaid: t.bigint().notNull(),
+    repossessionRecipient: t.hex(),
+  }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.loan, t.index] }),
+  })
+);
+
+export const tinteroPaymentRelationships = relations(
+  tinteroPayments,
+  ({ one }) => ({
+    loan: one(tinteroLoans, {
+      fields: [tinteroPayments.loan],
+      references: [tinteroLoans.id],
+    }),
+    tranche: one(tinteroTranches, {
+      fields: [tinteroPayments.loan, tinteroPayments.trancheIndex],
+      references: [tinteroTranches.loan, tinteroTranches.index],
+    }),
+  })
+);
+
+export const tinteroTranches = onchainTable(
+  "tintero_tranche",
+  (t) => ({
+    loan: t.hex().notNull(),
+    index: t.bigint().notNull(),
+    paymentIndex: t.bigint().notNull(),
+    receiver: t.hex().notNull(),
+  }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.loan, t.index] }),
+  })
+);
+
+export const tinteroTrancheRelationships = relations(
+  tinteroTranches,
+  ({ one, many }) => ({
+    loan: one(tinteroLoans, {
+      fields: [tinteroTranches.loan],
+      references: [tinteroLoans.id],
+    }),
+    payment: many(tinteroPayments),
+  })
+);
+
+// Price feeds
+
+export const medianMXNUSDRates = onchainTable(
+  "median_mxn_usd_rate",
+  createMedianRate
+);
+export const dailyBucketMXNUSDRates = onchainTable(
+  "daily_bucket_mxn_usd_rate",
+  createBucket
+);
+export const weeklyBucketMXNUSDRates = onchainTable(
+  "weekly_bucket_mxn_usd_rate",
+  createBucket
+);
+export const monthlyBucketMXNUSDRates = onchainTable(
+  "monthly_bucket_mxn_usd_rate",
+  createBucket
+);
+export const medianUSDCUSDRates = onchainTable(
+  "median_usdc_usd_rate",
+  createMedianRate
+);
+export const dailyBucketUSDCUSDRates = onchainTable(
+  "daily_bucket_usdc_usd_rate",
+  createBucket
+);
+export const weeklyBucketUSDCUSDRates = onchainTable(
+  "weekly_bucket_usdc_usd_rate",
+  createBucket
+);
+export const monthlyBucketUSDCUSDRates = onchainTable(
+  "monthly_bucket_usdc_usd_rate",
+  createBucket
+);
+export const medianUSDCMXNRates = onchainTable(
+  "median_usdc_mxn_rate",
+  createMedianRate
+);
+export const dailyBucketUSDCMXNRates = onchainTable(
+  "daily_bucket_usdc_mxn_rate",
+  createBucket
+);
+export const weeklyBucketUSDCMXNRates = onchainTable(
+  "weekly_bucket_usdc_mxn_rate",
+  createBucket
+);
+export const monthlyBucketUSDCMXNRates = onchainTable(
+  "monthly_bucket_usdc_mxn_rate",
+  createBucket
+);
