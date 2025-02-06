@@ -78,6 +78,19 @@ export const TinteroVaultABI = [
   },
   {
     type: "function",
+    name: "askDelegation",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "asset",
     inputs: [],
     outputs: [
@@ -174,6 +187,25 @@ export const TinteroVaultABI = [
   },
   {
     type: "function",
+    name: "delegatedTo",
+    inputs: [
+      {
+        name: "delegate",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "deposit",
     inputs: [
       {
@@ -198,12 +230,30 @@ export const TinteroVaultABI = [
   },
   {
     type: "function",
+    name: "forceRefundDelegation",
+    inputs: [
+      {
+        name: "delegate",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "fundN",
     inputs: [
       {
         name: "loan",
         type: "address",
-        internalType: "contract TinteroLoan",
+        internalType: "contract ITinteroLoan",
       },
       {
         name: "n",
@@ -251,7 +301,7 @@ export const TinteroVaultABI = [
     name: "lentTo",
     inputs: [
       {
-        name: "_loan",
+        name: "loan",
         type: "address",
         internalType: "address",
       },
@@ -523,7 +573,7 @@ export const TinteroVaultABI = [
       {
         name: "loan",
         type: "address",
-        internalType: "contract TinteroLoan",
+        internalType: "contract ITinteroLoan",
       },
       {
         name: "collateralTokenIds",
@@ -531,17 +581,17 @@ export const TinteroVaultABI = [
         internalType: "uint256[]",
       },
       {
-        name: "payments_",
+        name: "payments",
         type: "tuple[]",
         internalType: "struct PaymentLib.Payment[]",
         components: [
           {
             name: "principal",
-            type: "uint256",
-            internalType: "uint256",
+            type: "uint96",
+            internalType: "uint96",
           },
           {
-            name: "creation",
+            name: "fundedAt",
             type: "uint48",
             internalType: "uint48",
           },
@@ -557,13 +607,13 @@ export const TinteroVaultABI = [
           },
           {
             name: "interestRate",
-            type: "uint32",
-            internalType: "uint32",
+            type: "uint24",
+            internalType: "uint24",
           },
           {
             name: "premiumRate",
-            type: "uint32",
-            internalType: "uint32",
+            type: "uint24",
+            internalType: "uint24",
           },
         ],
       },
@@ -578,7 +628,7 @@ export const TinteroVaultABI = [
       {
         name: "loan",
         type: "address",
-        internalType: "contract TinteroLoan",
+        internalType: "contract ITinteroLoan",
       },
       {
         name: "paymentIndexes",
@@ -625,12 +675,25 @@ export const TinteroVaultABI = [
   },
   {
     type: "function",
+    name: "refundDelegation",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "repossess",
     inputs: [
       {
         name: "loan",
         type: "address",
-        internalType: "contract TinteroLoan",
+        internalType: "contract ITinteroLoan",
       },
       {
         name: "start",
@@ -656,32 +719,32 @@ export const TinteroVaultABI = [
     name: "requestLoan",
     inputs: [
       {
-        name: "collateralCollection_",
+        name: "collateralCollection",
         type: "address",
         internalType: "address",
       },
       {
-        name: "beneficiary_",
+        name: "beneficiary",
         type: "address",
         internalType: "address",
       },
       {
-        name: "defaultThreshold_",
+        name: "defaultThreshold",
         type: "uint24",
         internalType: "uint24",
       },
       {
-        name: "payments_",
+        name: "payments",
         type: "tuple[]",
         internalType: "struct PaymentLib.Payment[]",
         components: [
           {
             name: "principal",
-            type: "uint256",
-            internalType: "uint256",
+            type: "uint96",
+            internalType: "uint96",
           },
           {
-            name: "creation",
+            name: "fundedAt",
             type: "uint48",
             internalType: "uint48",
           },
@@ -697,18 +760,18 @@ export const TinteroVaultABI = [
           },
           {
             name: "interestRate",
-            type: "uint32",
-            internalType: "uint32",
+            type: "uint24",
+            internalType: "uint24",
           },
           {
             name: "premiumRate",
-            type: "uint32",
-            internalType: "uint32",
+            type: "uint24",
+            internalType: "uint24",
           },
         ],
       },
       {
-        name: "collateralTokenIds_",
+        name: "collateralTokenIds",
         type: "uint256[]",
         internalType: "uint256[]",
       },
@@ -750,6 +813,19 @@ export const TinteroVaultABI = [
   {
     type: "function",
     name: "totalAssets",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "totalAssetsDelegated",
     inputs: [],
     outputs: [
       {
@@ -846,7 +922,7 @@ export const TinteroVaultABI = [
       {
         name: "loan",
         type: "address",
-        internalType: "contract TinteroLoan",
+        internalType: "contract ITinteroLoan",
       },
       {
         name: "newImplementation",
@@ -925,6 +1001,44 @@ export const TinteroVaultABI = [
         type: "address",
         indexed: false,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DelegateAssets",
+    inputs: [
+      {
+        name: "delegate",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DelegateRefunded",
+    inputs: [
+      {
+        name: "delegate",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
     anonymous: false,
@@ -1326,7 +1440,7 @@ export const TinteroVaultABI = [
   },
   {
     type: "error",
-    name: "OnlyAuthorizedLoan",
+    name: "OnlyManagedLoan",
     inputs: [],
   },
   {

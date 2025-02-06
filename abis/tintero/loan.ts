@@ -124,7 +124,13 @@ export const TinteroLoanABI = [
         internalType: "uint256",
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "totalPrincipal",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "nonpayable",
   },
   {
@@ -176,7 +182,7 @@ export const TinteroLoanABI = [
       {
         name: "",
         type: "address",
-        internalType: "contract IPaymentCallback",
+        internalType: "contract ITinteroVault",
       },
     ],
     stateMutability: "view",
@@ -435,6 +441,24 @@ export const TinteroLoanABI = [
       },
     ],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "upgradeLoan",
+    inputs: [
+      {
+        name: "newImplementation",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "data",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",

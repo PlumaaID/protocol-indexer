@@ -95,6 +95,9 @@ export const tinteroLoan = onchainTable("tintero_loan", (t) => ({
   beneficiary: t.hex().notNull(),
   defaultThreshold: t.integer().notNull(),
   vault: t.hex().notNull(),
+  totalFunded: t.integer().notNull(),
+  totalPaid: t.integer().notNull(),
+  defaultAt: t.bigint(),
 }));
 
 export const tinteroLoanRelationships = relations(

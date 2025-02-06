@@ -30,6 +30,8 @@ ponder.on("TinteroVaultUSDC:LoanCreated", async ({ event, context }) => {
     beneficiary: event.args.beneficiary,
     defaultThreshold: event.args.defaultThreshold,
     vault: event.log.address,
+    totalFunded: 0,
+    totalPaid: 0,
   });
 });
 
@@ -51,6 +53,23 @@ ponder.on("TinteroLoanUSDC:PaymentCreated", async ({ event, context }) => {
     interestPaid: 0n,
     premiumInterestPaid: 0n,
   });
+
+  const loan = await context.db.find(tinteroLoan, {
+    id: event.log.address,
+  });
+
+  if (loan?.defaultThreshold && event.args.index > loan?.defaultThreshold) {
+    await context.db
+      .update(tinteroLoan, {
+        id: event.log.address,
+      })
+      .set({
+        defaultAt:
+          event.block.timestamp +
+          BigInt(event.args.payment.maturityPeriod) +
+          BigInt(event.args.payment.gracePeriod),
+      });
+  }
 });
 
 ponder.on("TinteroLoanUSDC:TrancheCreated", async ({ event, context }) => {
@@ -112,6 +131,14 @@ ponder.on("TinteroLoanUSDC:PaymentsFunded", async ({ event, context }) => {
         funded: true,
       });
   }
+
+  await context.db
+    .update(tinteroLoan, {
+      id: event.log.address,
+    })
+    .set((prev) => ({
+      totalFunded: prev.totalFunded + payments.length,
+    }));
 });
 
 ponder.on("TinteroLoanUSDC:PaymentsRepaid", async ({ event, context }) => {
@@ -144,6 +171,42 @@ ponder.on("TinteroLoanUSDC:PaymentsRepaid", async ({ event, context }) => {
         premiumInterestPaid: interest(event.block.timestamp - maturedAt),
       });
   }
+
+  await context.db
+    .update(tinteroLoan, {
+      id: event.log.address,
+    })
+    .set((prev) => ({
+      totalPaid: prev.totalPaid + payments.length,
+    }));
+
+  const loan = await context.db.find(tinteroLoan, {
+    id: event.log.address,
+  });
+  const [newDefaultPayment] = await context.db.sql
+    .select()
+    .from(tinteroPayment)
+    .where(
+      and(
+        eq(tinteroPayment.loan, event.log.address),
+        eq(
+          tinteroPayment.index,
+          BigInt(payments[payments.length - 1]?.index ?? 0) +
+            BigInt(loan?.defaultThreshold ?? 0)
+        )
+      )
+    );
+  await context.db
+    .update(tinteroLoan, {
+      id: event.log.address,
+    })
+    .set({
+      defaultAt: newDefaultPayment
+        ? event.block.timestamp +
+          newDefaultPayment.maturityPeriod +
+          newDefaultPayment.gracePeriod
+        : null, // Not enough payments to reach the default threshold
+    });
 });
 
 ponder.on("TinteroLoanUSDC:PaymentsRepossessed", async ({ event, context }) => {
