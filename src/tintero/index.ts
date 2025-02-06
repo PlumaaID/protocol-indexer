@@ -1,30 +1,30 @@
 import { and, eq, gte, isNull, lt, lte } from "ponder";
 import { ponder } from "ponder:registry";
 import {
-  tinteroLoan,
-  tinteroPayment,
-  tinteroTranche,
-  tinteroVault,
-  wallet,
+  TinteroLoan,
+  TinteroPayment,
+  TinteroTranche,
+  TinteroVault,
+  Wallet,
 } from "ponder:schema";
 
 ponder.on("TinteroVaultUSDC:LoanCreated", async ({ event, context }) => {
   await context.db
-    .insert(wallet)
+    .insert(Wallet)
     .values({
       id: event.args.beneficiary,
     })
     .onConflictDoNothing();
 
   await context.db
-    .insert(tinteroVault)
+    .insert(TinteroVault)
     .values({
       id: event.log.address,
       asset: event.args.collateralCollection,
     })
     .onConflictDoNothing();
 
-  await context.db.insert(tinteroLoan).values({
+  await context.db.insert(TinteroLoan).values({
     id: event.args.loan,
     collateralAsset: event.args.collateralCollection,
     beneficiary: event.args.beneficiary,
@@ -36,7 +36,7 @@ ponder.on("TinteroVaultUSDC:LoanCreated", async ({ event, context }) => {
 });
 
 ponder.on("TinteroLoanUSDC:PaymentCreated", async ({ event, context }) => {
-  await context.db.insert(tinteroPayment).values({
+  await context.db.insert(TinteroPayment).values({
     loan: event.log.address,
     index: event.args.index,
     collateralId: event.args.tokenId,
@@ -54,13 +54,13 @@ ponder.on("TinteroLoanUSDC:PaymentCreated", async ({ event, context }) => {
     premiumInterestPaid: 0n,
   });
 
-  const loan = await context.db.find(tinteroLoan, {
+  const loan = await context.db.find(TinteroLoan, {
     id: event.log.address,
   });
 
   if (loan?.defaultThreshold && event.args.index > loan?.defaultThreshold) {
     await context.db
-      .update(tinteroLoan, {
+      .update(TinteroLoan, {
         id: event.log.address,
       })
       .set({
@@ -73,7 +73,7 @@ ponder.on("TinteroLoanUSDC:PaymentCreated", async ({ event, context }) => {
 });
 
 ponder.on("TinteroLoanUSDC:TrancheCreated", async ({ event, context }) => {
-  await context.db.insert(tinteroTranche).values({
+  await context.db.insert(TinteroTranche).values({
     loan: event.log.address,
     index: event.args.index,
     paymentIndex: event.args.paymentIndex,
@@ -82,22 +82,22 @@ ponder.on("TinteroLoanUSDC:TrancheCreated", async ({ event, context }) => {
 
   const payments = await context.db.sql
     .select()
-    .from(tinteroPayment)
+    .from(TinteroPayment)
     .where(
       and(
         // Tranche not assigned
-        isNull(tinteroPayment.trancheIndex),
+        isNull(TinteroPayment.trancheIndex),
         // Loan matches up to the payment index
         and(
-          eq(tinteroPayment.loan, event.log.address),
-          lte(tinteroPayment.index, event.args.paymentIndex)
+          eq(TinteroPayment.loan, event.log.address),
+          lte(TinteroPayment.index, event.args.paymentIndex)
         )
       )
     );
 
   for (const payment of payments) {
     await context.db
-      .update(tinteroPayment, {
+      .update(TinteroPayment, {
         loan: payment.loan,
         index: payment.index,
       })
@@ -110,20 +110,20 @@ ponder.on("TinteroLoanUSDC:TrancheCreated", async ({ event, context }) => {
 ponder.on("TinteroLoanUSDC:PaymentsFunded", async ({ event, context }) => {
   const payments = await context.db.sql
     .select()
-    .from(tinteroPayment)
+    .from(TinteroPayment)
     .where(
       and(
-        eq(tinteroPayment.loan, event.log.address),
+        eq(TinteroPayment.loan, event.log.address),
         and(
-          gte(tinteroPayment.index, event.args.startIndex),
-          lt(tinteroPayment.index, event.args.endIndex)
+          gte(TinteroPayment.index, event.args.startIndex),
+          lt(TinteroPayment.index, event.args.endIndex)
         )
       )
     );
 
   for (const payment of payments) {
     await context.db
-      .update(tinteroPayment, {
+      .update(TinteroPayment, {
         loan: payment.loan,
         index: payment.index,
       })
@@ -133,7 +133,7 @@ ponder.on("TinteroLoanUSDC:PaymentsFunded", async ({ event, context }) => {
   }
 
   await context.db
-    .update(tinteroLoan, {
+    .update(TinteroLoan, {
       id: event.log.address,
     })
     .set((prev) => ({
@@ -144,13 +144,13 @@ ponder.on("TinteroLoanUSDC:PaymentsFunded", async ({ event, context }) => {
 ponder.on("TinteroLoanUSDC:PaymentsRepaid", async ({ event, context }) => {
   const payments = await context.db.sql
     .select()
-    .from(tinteroPayment)
+    .from(TinteroPayment)
     .where(
       and(
-        eq(tinteroPayment.loan, event.log.address),
+        eq(TinteroPayment.loan, event.log.address),
         and(
-          gte(tinteroPayment.index, event.args.startIndex),
-          lt(tinteroPayment.index, event.args.endIndex)
+          gte(TinteroPayment.index, event.args.startIndex),
+          lt(TinteroPayment.index, event.args.endIndex)
         )
       )
     );
@@ -161,7 +161,7 @@ ponder.on("TinteroLoanUSDC:PaymentsRepaid", async ({ event, context }) => {
       // Math.mulDiv(self.principal * rate, elapsed, YEAR_IN_SECONDS) / INTEREST_SCALE
       (payment.principal * payment.interestRate * elapsed * 31536000n) / 10000n;
     await context.db
-      .update(tinteroPayment, {
+      .update(TinteroPayment, {
         loan: payment.loan,
         index: payment.index,
       })
@@ -173,31 +173,31 @@ ponder.on("TinteroLoanUSDC:PaymentsRepaid", async ({ event, context }) => {
   }
 
   await context.db
-    .update(tinteroLoan, {
+    .update(TinteroLoan, {
       id: event.log.address,
     })
     .set((prev) => ({
       totalPaid: prev.totalPaid + payments.length,
     }));
 
-  const loan = await context.db.find(tinteroLoan, {
+  const loan = await context.db.find(TinteroLoan, {
     id: event.log.address,
   });
   const [newDefaultPayment] = await context.db.sql
     .select()
-    .from(tinteroPayment)
+    .from(TinteroPayment)
     .where(
       and(
-        eq(tinteroPayment.loan, event.log.address),
+        eq(TinteroPayment.loan, event.log.address),
         eq(
-          tinteroPayment.index,
+          TinteroPayment.index,
           BigInt(payments[payments.length - 1]?.index ?? 0) +
             BigInt(loan?.defaultThreshold ?? 0)
         )
       )
     );
   await context.db
-    .update(tinteroLoan, {
+    .update(TinteroLoan, {
       id: event.log.address,
     })
     .set({
@@ -212,20 +212,20 @@ ponder.on("TinteroLoanUSDC:PaymentsRepaid", async ({ event, context }) => {
 ponder.on("TinteroLoanUSDC:PaymentsRepossessed", async ({ event, context }) => {
   const payments = await context.db.sql
     .select()
-    .from(tinteroPayment)
+    .from(TinteroPayment)
     .where(
       and(
-        eq(tinteroPayment.loan, event.log.address),
+        eq(TinteroPayment.loan, event.log.address),
         and(
-          gte(tinteroPayment.index, event.args.startIndex),
-          lt(tinteroPayment.index, event.args.endIndex)
+          gte(TinteroPayment.index, event.args.startIndex),
+          lt(TinteroPayment.index, event.args.endIndex)
         )
       )
     );
 
   for (const payment of payments) {
     await context.db
-      .update(tinteroPayment, {
+      .update(TinteroPayment, {
         loan: payment.loan,
         index: payment.index,
       })
@@ -239,20 +239,20 @@ ponder.on("TinteroLoanUSDC:PaymentsRepossessed", async ({ event, context }) => {
 ponder.on("TinteroLoanUSDC:PaymentsWithdrawn", async ({ event, context }) => {
   const payments = await context.db.sql
     .select()
-    .from(tinteroPayment)
+    .from(TinteroPayment)
     .where(
       and(
-        eq(tinteroPayment.loan, event.log.address),
+        eq(TinteroPayment.loan, event.log.address),
         and(
-          gte(tinteroPayment.index, event.args.startIndex),
-          lt(tinteroPayment.index, event.args.endIndex)
+          gte(TinteroPayment.index, event.args.startIndex),
+          lt(TinteroPayment.index, event.args.endIndex)
         )
       )
     );
 
   for (const payment of payments) {
     await context.db
-      .update(tinteroPayment, {
+      .update(TinteroPayment, {
         loan: payment.loan,
         index: payment.index,
       })

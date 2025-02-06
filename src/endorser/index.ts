@@ -1,10 +1,10 @@
 import { ponder } from "ponder:registry";
-import { endorsable, endorseEvent, wallet } from "ponder:schema";
+import { Endorsable, EndorseEvent, Wallet } from "ponder:schema";
 
 ponder.on("Endorser:Transfer", async ({ event, context }) => {
   // Create an Wallet for the sender, or update the balance if it already exists.
   await context.db
-    .insert(wallet)
+    .insert(Wallet)
     .values({
       id: event.args.from,
     })
@@ -12,7 +12,7 @@ ponder.on("Endorser:Transfer", async ({ event, context }) => {
 
   // Create an Wallet for the recipient, or update the balance if it already exists.
   await context.db
-    .insert(wallet)
+    .insert(Wallet)
     .values({
       id: event.args.to,
     })
@@ -22,7 +22,7 @@ ponder.on("Endorser:Transfer", async ({ event, context }) => {
 
   // Create or update a Endorsable.
   await context.db
-    .insert(endorsable)
+    .insert(Endorsable)
     .values({
       id: event.args.id,
       ownerId: event.args.to,
@@ -34,7 +34,7 @@ ponder.on("Endorser:Transfer", async ({ event, context }) => {
     }));
 
   // Create a EndorseEvent.
-  await context.db.insert(endorseEvent).values({
+  await context.db.insert(EndorseEvent).values({
     id: event.log.id,
     fromId: event.args.from,
     toId: event.args.to,

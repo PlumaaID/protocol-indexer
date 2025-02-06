@@ -25,25 +25,25 @@ const createBucket = (t: any) => ({
   count: t.integer().notNull(),
 });
 
-export const endorsable = onchainTable("endorsable", (t) => ({
+export const Endorsable = onchainTable("endorsable", (t) => ({
   id: t.bigint().primaryKey().notNull(),
   ownerId: t.hex().notNull(),
   timestamp: t.integer().notNull(),
   network: t.integer().notNull(),
 }));
 
-export const endorsableRelationships = relations(
-  endorsable,
+export const EndorsableRelationships = relations(
+  Endorsable,
   ({ one, many }) => ({
-    owner: one(wallet, {
-      fields: [endorsable.ownerId],
-      references: [wallet.id],
+    owner: one(Wallet, {
+      fields: [Endorsable.ownerId],
+      references: [Wallet.id],
     }),
-    endorseEvents: many(endorseEvent),
+    endorseEvents: many(EndorseEvent),
   })
 );
 
-export const endorseEvent = onchainTable("endorse_event", (t) => ({
+export const EndorseEvent = onchainTable("endorse_event", (t) => ({
   id: t.text().primaryKey().notNull(),
   timestamp: t.integer().notNull(),
   fromId: t.hex().notNull(),
@@ -52,44 +52,44 @@ export const endorseEvent = onchainTable("endorse_event", (t) => ({
   network: t.integer().notNull(),
 }));
 
-export const endorseEventRelationships = relations(endorseEvent, ({ one }) => ({
-  from: one(wallet, {
-    fields: [endorseEvent.fromId],
-    references: [wallet.id],
+export const EndorseEventRelationships = relations(EndorseEvent, ({ one }) => ({
+  from: one(Wallet, {
+    fields: [EndorseEvent.fromId],
+    references: [Wallet.id],
   }),
-  to: one(wallet, {
-    fields: [endorseEvent.toId],
-    references: [wallet.id],
+  to: one(Wallet, {
+    fields: [EndorseEvent.toId],
+    references: [Wallet.id],
   }),
-  token: one(endorsable, {
-    fields: [endorseEvent.digest],
-    references: [endorsable.id],
+  token: one(Endorsable, {
+    fields: [EndorseEvent.digest],
+    references: [Endorsable.id],
   }),
 }));
 
-export const wallet = onchainTable("wallet", (t) => ({
+export const Wallet = onchainTable("wallet", (t) => ({
   id: t.hex().primaryKey(),
 }));
 
-export const walletRelationships = relations(wallet, ({ many }) => ({
-  endorsables: many(endorsable),
-  endorseFromEvents: many(endorseEvent),
-  endorseToEvents: many(endorseEvent),
+export const WalletRelationships = relations(Wallet, ({ many }) => ({
+  endorsables: many(Endorsable),
+  endorseFromEvents: many(EndorseEvent),
+  endorseToEvents: many(EndorseEvent),
 }));
 
-export const tinteroVault = onchainTable("tintero_vault", (t) => ({
+export const TinteroVault = onchainTable("tintero_vault", (t) => ({
   id: t.hex().primaryKey().notNull(),
   asset: t.hex().notNull(),
 }));
 
-export const tinteroVaultRelationships = relations(
-  tinteroVault,
+export const TinteroVaultRelationships = relations(
+  TinteroVault,
   ({ many }) => ({
-    loans: many(tinteroLoan),
+    loans: many(TinteroLoan),
   })
 );
 
-export const tinteroLoan = onchainTable("tintero_loan", (t) => ({
+export const TinteroLoan = onchainTable("tintero_loan", (t) => ({
   id: t.hex().primaryKey().notNull(),
   collateralAsset: t.hex().notNull(),
   beneficiary: t.hex().notNull(),
@@ -100,18 +100,18 @@ export const tinteroLoan = onchainTable("tintero_loan", (t) => ({
   defaultAt: t.bigint(),
 }));
 
-export const tinteroLoanRelationships = relations(
-  tinteroLoan,
+export const TinteroLoanRelationships = relations(
+  TinteroLoan,
   ({ one, many }) => ({
-    vault: one(tinteroVault, {
-      fields: [tinteroLoan.vault],
-      references: [tinteroVault.id],
+    vault: one(TinteroVault, {
+      fields: [TinteroLoan.vault],
+      references: [TinteroVault.id],
     }),
-    payments: many(tinteroPayment),
+    payments: many(TinteroPayment),
   })
 );
 
-export const tinteroPayment = onchainTable(
+export const TinteroPayment = onchainTable(
   "tintero_payment",
   (t) => ({
     loan: t.hex().notNull(),
@@ -137,21 +137,21 @@ export const tinteroPayment = onchainTable(
   })
 );
 
-export const tinteroPaymentRelationships = relations(
-  tinteroPayment,
+export const TinteroPaymentRelationships = relations(
+  TinteroPayment,
   ({ one }) => ({
-    loan: one(tinteroLoan, {
-      fields: [tinteroPayment.loan],
-      references: [tinteroLoan.id],
+    loan: one(TinteroLoan, {
+      fields: [TinteroPayment.loan],
+      references: [TinteroLoan.id],
     }),
-    tranche: one(tinteroTranche, {
-      fields: [tinteroPayment.loan, tinteroPayment.trancheIndex],
-      references: [tinteroTranche.loan, tinteroTranche.index],
+    tranche: one(TinteroTranche, {
+      fields: [TinteroPayment.loan, TinteroPayment.trancheIndex],
+      references: [TinteroTranche.loan, TinteroTranche.index],
     }),
   })
 );
 
-export const tinteroTranche = onchainTable(
+export const TinteroTranche = onchainTable(
   "tintero_tranche",
   (t) => ({
     loan: t.hex().notNull(),
@@ -164,64 +164,64 @@ export const tinteroTranche = onchainTable(
   })
 );
 
-export const tinteroTrancheRelationships = relations(
-  tinteroTranche,
+export const TinteroTrancheRelationships = relations(
+  TinteroTranche,
   ({ one, many }) => ({
-    loan: one(tinteroLoan, {
-      fields: [tinteroTranche.loan],
-      references: [tinteroLoan.id],
+    loan: one(TinteroLoan, {
+      fields: [TinteroTranche.loan],
+      references: [TinteroLoan.id],
     }),
-    payments: many(tinteroPayment),
+    payments: many(TinteroPayment),
   })
 );
 
 // Price feeds
 
-export const medianMXNUSDRate = onchainTable(
+export const MedianMXNUSDRate = onchainTable(
   "median_mxn_usd_rate",
   createMedianRate
 );
-export const dailyBucketMXNUSDRate = onchainTable(
+export const DailyBucketMXNUSDRate = onchainTable(
   "daily_bucket_mxn_usd_rate",
   createBucket
 );
-export const weeklyBucketMXNUSDRate = onchainTable(
+export const WeeklyBucketMXNUSDRate = onchainTable(
   "weekly_bucket_mxn_usd_rate",
   createBucket
 );
-export const monthlyBucketMXNUSDRate = onchainTable(
+export const MonthlyBucketMXNUSDRate = onchainTable(
   "monthly_bucket_mxn_usd_rate",
   createBucket
 );
-export const medianUSDCUSDRate = onchainTable(
+export const MedianUSDCUSDRate = onchainTable(
   "median_usdc_usd_rate",
   createMedianRate
 );
-export const dailyBucketUSDCUSDRate = onchainTable(
+export const DailyBucketUSDCUSDRate = onchainTable(
   "daily_bucket_usdc_usd_rate",
   createBucket
 );
-export const weeklyBucketUSDCUSDRate = onchainTable(
+export const WeeklyBucketUSDCUSDRate = onchainTable(
   "weekly_bucket_usdc_usd_rate",
   createBucket
 );
-export const monthlyBucketUSDCUSDRate = onchainTable(
+export const MonthlyBucketUSDCUSDRate = onchainTable(
   "monthly_bucket_usdc_usd_rate",
   createBucket
 );
-export const medianUSDCMXNRate = onchainTable(
+export const MedianUSDCMXNRate = onchainTable(
   "median_usdc_mxn_rate",
   createMedianRate
 );
-export const dailyBucketUSDCMXNRate = onchainTable(
+export const DailyBucketUSDCMXNRate = onchainTable(
   "daily_bucket_usdc_mxn_rate",
   createBucket
 );
-export const weeklyBucketUSDCMXNRate = onchainTable(
+export const WeeklyBucketUSDCMXNRate = onchainTable(
   "weekly_bucket_usdc_mxn_rate",
   createBucket
 );
-export const monthlyBucketUSDCMXNRate = onchainTable(
+export const MonthlyBucketUSDCMXNRate = onchainTable(
   "monthly_bucket_usdc_mxn_rate",
   createBucket
 );
