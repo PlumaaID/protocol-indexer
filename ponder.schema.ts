@@ -35,7 +35,6 @@ export const AccessManagerRelationships = relations(
     targets: many(AccessManagerTarget),
     roles: many(AccessManagerRole),
     members: many(AccessManagerMember),
-    functions: many(AccessManagerTargetFunction),
     operations: many(AccessManagerOperation),
   })
 );
@@ -62,7 +61,6 @@ export const AccessManagerTargetRelationships = relations(
       fields: [AccessManagerTarget.managerId],
       references: [AccessManager.id],
     }),
-    roles: many(AccessManagerRole),
     functions: many(AccessManagerTargetFunction),
     operations: many(AccessManagerOperation),
   })
