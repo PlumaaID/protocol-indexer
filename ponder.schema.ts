@@ -25,6 +25,176 @@ const createBucket = (t: any) => ({
   count: t.integer().notNull(),
 });
 
+export const AccessManager = onchainTable("access_manager", (t) => ({
+  id: t.hex().primaryKey().notNull(),
+}));
+
+export const AccessManagerRelationships = relations(
+  AccessManager,
+  ({ many }) => ({
+    targets: many(AccessManagerTarget),
+    roles: many(AccessManagerRole),
+    members: many(AccessManagerMember),
+    functions: many(AccessManagerTargetFunction),
+    operations: many(AccessManagerOperation),
+  })
+);
+
+export const AccessManagerTarget = onchainTable(
+  "access_manager_target",
+  (t) => ({
+    id: t.hex().notNull(),
+    managerId: t.hex().notNull(),
+    oldAdminDelay: t.integer(),
+    adminDelay: t.integer().notNull(),
+    adminDelayEffectDate: t.bigint().notNull(),
+    closed: t.boolean().notNull(),
+  }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.id, t.managerId] }),
+  })
+);
+
+export const AccessManagerTargetRelationships = relations(
+  AccessManagerTarget,
+  ({ one, many }) => ({
+    manager: one(AccessManager, {
+      fields: [AccessManagerTarget.managerId],
+      references: [AccessManager.id],
+    }),
+    roles: many(AccessManagerRole),
+    functions: many(AccessManagerTargetFunction),
+    operations: many(AccessManagerOperation),
+  })
+);
+
+export const AccessManagerRole = onchainTable(
+  "access_manager_role",
+  (t) => ({
+    id: t.bigint().notNull(),
+    managerId: t.hex().notNull(),
+    adminId: t.bigint().notNull(),
+    guardianId: t.bigint().notNull(),
+    label: t.text(),
+    oldGrantDelay: t.integer(),
+    grantDelay: t.integer().notNull(),
+    grantDelayEffectDate: t.bigint().notNull(),
+  }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.id, t.managerId] }),
+  })
+);
+
+export const AccessManagerRoleRelationships = relations(
+  AccessManagerRole,
+  ({ one, many }) => ({
+    manager: one(AccessManager, {
+      fields: [AccessManagerRole.managerId],
+      references: [AccessManager.id],
+    }),
+    admin: one(AccessManagerRole, {
+      fields: [AccessManagerRole.adminId, AccessManagerRole.managerId],
+      references: [AccessManagerRole.id, AccessManagerRole.managerId],
+    }),
+    guardian: one(AccessManagerRole, {
+      fields: [AccessManagerRole.guardianId, AccessManagerRole.managerId],
+      references: [AccessManagerRole.id, AccessManagerRole.managerId],
+    }),
+    adminOf: many(AccessManagerRole),
+    guardianOf: many(AccessManagerRole),
+    members: many(AccessManagerMember),
+    functions: many(AccessManagerTargetFunction),
+  })
+);
+
+export const AccessManagerMember = onchainTable(
+  "access_manager_member",
+  (t) => ({
+    id: t.hex().notNull(),
+    managerId: t.hex().notNull(),
+    roleId: t.bigint().notNull(),
+    since: t.integer().notNull(),
+    oldExecutionDelay: t.integer(),
+    executionDelay: t.integer().notNull(),
+    executionDelayEffectDate: t.bigint().notNull(),
+  }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.id, t.managerId, t.roleId] }),
+  })
+);
+
+export const AccessManagerMemberRelationships = relations(
+  AccessManagerMember,
+  ({ one }) => ({
+    role: one(AccessManagerRole, {
+      fields: [AccessManagerMember.roleId, AccessManagerMember.managerId],
+      references: [AccessManagerRole.id, AccessManagerRole.managerId],
+    }),
+    manager: one(AccessManager, {
+      fields: [AccessManagerMember.managerId],
+      references: [AccessManager.id],
+    }),
+  })
+);
+
+export const AccessManagerOperation = onchainTable(
+  "access_manager_operation",
+  (t) => ({
+    id: t.hex().notNull(),
+    nonce: t.integer().notNull(),
+    schedule: t.integer().notNull(),
+    caller: t.hex().notNull(),
+    targetId: t.hex().notNull(),
+    data: t.hex().notNull(),
+    status: t.integer().notNull(),
+    managerId: t.hex().notNull(),
+  }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.id, t.managerId] }),
+  })
+);
+
+export const AccessManagerOperationRelationships = relations(
+  AccessManagerOperation,
+  ({ one }) => ({
+    manager: one(AccessManager, {
+      fields: [AccessManagerOperation.managerId],
+      references: [AccessManager.id],
+    }),
+    target: one(AccessManagerTarget, {
+      fields: [AccessManagerOperation.targetId],
+      references: [AccessManagerTarget.id],
+    }),
+  })
+);
+
+export const AccessManagerTargetFunction = onchainTable(
+  "access_manager_target_function",
+  (t) => ({
+    id: t.hex().notNull(),
+    managerId: t.hex().notNull(),
+    targetId: t.hex().notNull(),
+    roleId: t.bigint().notNull(),
+  }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.id, t.targetId] }),
+  })
+);
+
+export const AccessManagerTargetFunctionRelationships = relations(
+  AccessManagerTargetFunction,
+  ({ one }) => ({
+    target: one(AccessManagerTarget, {
+      fields: [AccessManagerTargetFunction.targetId],
+      references: [AccessManagerTarget.id],
+    }),
+    role: one(AccessManagerRole, {
+      fields: [AccessManagerTargetFunction.roleId],
+      references: [AccessManagerRole.id],
+    }),
+  })
+);
+
 export const Endorsable = onchainTable("endorsable", (t) => ({
   id: t.bigint().primaryKey().notNull(),
   ownerId: t.hex().notNull(),

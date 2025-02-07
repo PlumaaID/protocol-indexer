@@ -1,9 +1,10 @@
-import { createConfig, loadBalance, factory } from "ponder";
+import { createConfig, loadBalance, factory, mergeAbis } from "ponder";
 import { getAbiItem, http } from "viem";
 import { erc721ABI } from "./abis/erc721ABI";
 import { AccessControlledOffchainAggregator } from "./abis/chainlink/AccessControlledOffchainAggregator";
 import { TinteroLoanABI } from "./abis/tintero/loan";
 import { TinteroVaultABI } from "./abis/tintero/vault";
+import { AccessManagerABI } from "./abis/access-manager";
 
 export default createConfig({
   networks: {
@@ -33,8 +34,21 @@ export default createConfig({
     },
   },
   contracts: {
+    AccessManager: {
+      abi: AccessManagerABI,
+      network: {
+        "arbitrum-sepolia": {
+          startBlock: 77326497,
+          address: "0x0000593Daa1e9E24FEe19AF6B258A268c97aAAAa",
+        },
+        arbitrum: {
+          startBlock: 250176661,
+          address: "0x0000593Daa1e9E24FEe19AF6B258A268c97aAAAa",
+        },
+      },
+    },
     TinteroVaultUSDC: {
-      abi: TinteroVaultABI,
+      abi: mergeAbis([TinteroVaultABI, erc721ABI]),
       network: {
         "arbitrum-sepolia": {
           startBlock: 120219065,
