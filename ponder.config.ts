@@ -38,7 +38,7 @@ export default createConfig({
       network: {
         "arbitrum-sepolia": {
           startBlock: 120219065,
-          address: "0xa5c0a11fc265f3cddb0624f73f955a3c71bad754",
+          address: "0xd663873df2f546e3746f3ef3c7a136cdd6c09edc",
         },
       },
     },
@@ -48,7 +48,7 @@ export default createConfig({
         "arbitrum-sepolia": {
           startBlock: 120219065,
           address: factory({
-            address: "0xa5c0a11fc265f3cddb0624f73f955a3c71bad754",
+            address: "0xd663873df2f546e3746f3ef3c7a136cdd6c09edc",
             event: getAbiItem({ abi: TinteroVaultABI, name: "LoanCreated" }),
             parameter: "loan",
           }),

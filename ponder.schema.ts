@@ -108,6 +108,7 @@ export const TinteroLoanRelationships = relations(
       references: [TinteroVault.id],
     }),
     payments: many(TinteroPayment),
+    tranches: many(TinteroTranche),
   })
 );
 
