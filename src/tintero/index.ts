@@ -8,7 +8,7 @@ import {
   Wallet,
 } from "ponder:schema";
 
-ponder.on("TinteroVaultUSDC:LoanCreated", async ({ event, context }) => {
+ponder.on("TinteroVaultERC20M:LoanCreated", async ({ event, context }) => {
   await context.db
     .insert(Wallet)
     .values({
@@ -35,7 +35,7 @@ ponder.on("TinteroVaultUSDC:LoanCreated", async ({ event, context }) => {
   });
 });
 
-ponder.on("TinteroLoanUSDC:PaymentCreated", async ({ event, context }) => {
+ponder.on("TinteroLoanERC20M:PaymentCreated", async ({ event, context }) => {
   await context.db.insert(TinteroPayment).values({
     loan: event.log.address,
     index: event.args.index,
@@ -72,7 +72,7 @@ ponder.on("TinteroLoanUSDC:PaymentCreated", async ({ event, context }) => {
   }
 });
 
-ponder.on("TinteroLoanUSDC:TrancheCreated", async ({ event, context }) => {
+ponder.on("TinteroLoanERC20M:TrancheCreated", async ({ event, context }) => {
   await context.db.insert(TinteroTranche).values({
     loan: event.log.address,
     index: event.args.index,
@@ -107,7 +107,7 @@ ponder.on("TinteroLoanUSDC:TrancheCreated", async ({ event, context }) => {
   }
 });
 
-ponder.on("TinteroLoanUSDC:PaymentsFunded", async ({ event, context }) => {
+ponder.on("TinteroLoanERC20M:PaymentsFunded", async ({ event, context }) => {
   const payments = await context.db.sql
     .select()
     .from(TinteroPayment)
@@ -128,6 +128,7 @@ ponder.on("TinteroLoanUSDC:PaymentsFunded", async ({ event, context }) => {
         index: payment.index,
       })
       .set({
+        fundedAt: event.block.timestamp,
         funded: true,
       });
   }
@@ -141,7 +142,7 @@ ponder.on("TinteroLoanUSDC:PaymentsFunded", async ({ event, context }) => {
     }));
 });
 
-ponder.on("TinteroLoanUSDC:PaymentsRepaid", async ({ event, context }) => {
+ponder.on("TinteroLoanERC20M:PaymentsRepaid", async ({ event, context }) => {
   const payments = await context.db.sql
     .select()
     .from(TinteroPayment)
@@ -209,34 +210,37 @@ ponder.on("TinteroLoanUSDC:PaymentsRepaid", async ({ event, context }) => {
     });
 });
 
-ponder.on("TinteroLoanUSDC:PaymentsRepossessed", async ({ event, context }) => {
-  const payments = await context.db.sql
-    .select()
-    .from(TinteroPayment)
-    .where(
-      and(
-        eq(TinteroPayment.loan, event.log.address),
+ponder.on(
+  "TinteroLoanERC20M:PaymentsRepossessed",
+  async ({ event, context }) => {
+    const payments = await context.db.sql
+      .select()
+      .from(TinteroPayment)
+      .where(
         and(
-          gte(TinteroPayment.index, event.args.startIndex),
-          lt(TinteroPayment.index, event.args.endIndex)
+          eq(TinteroPayment.loan, event.log.address),
+          and(
+            gte(TinteroPayment.index, event.args.startIndex),
+            lt(TinteroPayment.index, event.args.endIndex)
+          )
         )
-      )
-    );
+      );
 
-  for (const payment of payments) {
-    await context.db
-      .update(TinteroPayment, {
-        loan: payment.loan,
-        index: payment.index,
-      })
-      .set({
-        repossessed: true,
-        repossessionRecipient: event.args.recipient,
-      });
+    for (const payment of payments) {
+      await context.db
+        .update(TinteroPayment, {
+          loan: payment.loan,
+          index: payment.index,
+        })
+        .set({
+          repossessed: true,
+          repossessionRecipient: event.args.recipient,
+        });
+    }
   }
-});
+);
 
-ponder.on("TinteroLoanUSDC:PaymentsWithdrawn", async ({ event, context }) => {
+ponder.on("TinteroLoanERC20M:PaymentsWithdrawn", async ({ event, context }) => {
   const payments = await context.db.sql
     .select()
     .from(TinteroPayment)

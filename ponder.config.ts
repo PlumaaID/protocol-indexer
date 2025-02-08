@@ -47,7 +47,7 @@ export default createConfig({
         },
       },
     },
-    TinteroVaultUSDC: {
+    TinteroVaultERC20M: {
       abi: mergeAbis([TinteroVaultABI, erc721ABI]),
       network: {
         "arbitrum-sepolia": {
@@ -56,7 +56,7 @@ export default createConfig({
         },
       },
     },
-    TinteroLoanUSDC: {
+    TinteroLoanERC20M: {
       abi: TinteroLoanABI,
       network: {
         "arbitrum-sepolia": {
