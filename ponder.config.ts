@@ -24,6 +24,22 @@ export default createConfig({
         ),
       ]),
     },
+    base: {
+      chainId: 8453,
+      transport: loadBalance([
+        http(
+          `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+        ),
+      ]),
+    },
+    "base-sepolia": {
+      chainId: 84532,
+      transport: loadBalance([
+        http(
+          `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+        ),
+      ]),
+    },
     polygon: {
       chainId: 137,
       transport: loadBalance([
@@ -43,6 +59,14 @@ export default createConfig({
         },
         arbitrum: {
           startBlock: 250176661,
+          address: "0x0000593Daa1e9E24FEe19AF6B258A268c97aAAAa",
+        },
+        "base-sepolia": {
+          startBlock: 24114960,
+          address: "0x0000593Daa1e9E24FEe19AF6B258A268c97aAAAa",
+        },
+        base: {
+          startBlock: 28604440,
           address: "0x0000593Daa1e9E24FEe19AF6B258A268c97aAAAa",
         },
       },
@@ -78,6 +102,14 @@ export default createConfig({
         },
         arbitrum: {
           startBlock: 244339084,
+          address: "0x0000c908D1104caD2867Ec2A8Bb178D78C9bAaaa",
+        },
+        "base-sepolia": {
+          startBlock: 24114960,
+          address: "0x0000c908D1104caD2867Ec2A8Bb178D78C9bAaaa",
+        },
+        base: {
+          startBlock: 28604440,
           address: "0x0000c908D1104caD2867Ec2A8Bb178D78C9bAaaa",
         },
       },
